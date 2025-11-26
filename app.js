@@ -1,5 +1,5 @@
 /**
- * App Controller test
+ * App Controller
  * Handles UI interactions and Chart updates
  */
 
@@ -161,28 +161,19 @@ function updateMetrics(results) {
 function updateCharts(results) {
     const { base, sim } = results;
 
-    // Common Chart Options
-    const commonOptions = {
+    // Base configuration for all charts
+    const textColor = getComputedStyle(document.body).getPropertyValue('--text-color');
+    const baseConfig = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
             legend: {
-                labels: { color: getComputedStyle(document.body).getPropertyValue('--text-color') }
-            }
-        },
-        scales: {
-            x: {
-                ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') },
-                beginAtZero: true
-            },
-            y: {
-                ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') },
-                beginAtZero: true
+                labels: { color: textColor }
             }
         }
     };
 
-    // 1. Capital Evolution Chart
+    // 1. Capital Evolution Chart (Line)
     const labels = base.schedule.filter((_, i) => i % 12 === 0).map(d => `Año ${Math.floor(d.month / 12)}`);
     const baseData = base.schedule.filter((_, i) => i % 12 === 0).map(d => d.balance);
 
@@ -216,9 +207,18 @@ function updateCharts(results) {
                 tension: 0.4
             }
         ]
-    }, commonOptions);
+    }, {
+        ...baseConfig,
+        scales: {
+            x: { ticks: { color: textColor } },
+            y: {
+                ticks: { color: textColor },
+                beginAtZero: true
+            }
+        }
+    });
 
-    // 2. Interest Chart (Bar)
+    // 2. Interest Chart (Vertical Bar)
     updateChart('interest', 'bar', {
         labels: ['Intereses Totales'],
         datasets: [
@@ -235,11 +235,20 @@ function updateCharts(results) {
                 borderWidth: 0
             }
         ]
-    }, commonOptions);
+    }, {
+        ...baseConfig,
+        scales: {
+            x: {
+                ticks: { color: textColor }
+            },
+            y: {
+                ticks: { color: textColor },
+                beginAtZero: true
+            }
+        }
+    });
 
-    // 3. Time Chart (Bar Horizontal)
-    // For horizontal bar, indexAxis is 'y'.
-    // We need to ensure the X axis (values) starts at zero.
+    // 3. Time Chart (Horizontal Bar)
     updateChart('time', 'bar', {
         labels: ['Tiempo (Años)'],
         datasets: [
@@ -259,22 +268,31 @@ function updateCharts(results) {
             }
         ]
     }, {
-        ...commonOptions,
-        indexAxis: 'y'
+        ...baseConfig,
+        indexAxis: 'y',
+        scales: {
+            x: {
+                ticks: { color: textColor },
+                beginAtZero: true
+            },
+            y: {
+                ticks: { color: textColor }
+            }
+        }
     });
 
-    // 4. ROI / Impact Chart (Doughnut or Bar)
+    // 4. ROI / Impact Chart (Doughnut)
     const rentalIncome = 850 * 12 * sim.totalYears;
     const totalSavings = base.totalInterest - sim.totalInterest;
 
     updateChart('roi', 'doughnut', {
         labels: ['Ahorro Intereses', 'Ingresos Alquiler (Proyectado)'],
         datasets: [{
-            data: [Math.max(0, totalSavings), rentalIncome], // Ensure no negative values for doughnut
+            data: [Math.max(0, totalSavings), rentalIncome],
             backgroundColor: ['#6d5dfc', '#00d2ff'],
             borderWidth: 0
         }]
-    }, commonOptions);
+    }, baseConfig);
 }
 
 function updateChart(key, type, data, options) {
