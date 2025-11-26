@@ -1,5 +1,5 @@
 /**
- * App Controller
+ * App Controller test
  * Handles UI interactions and Chart updates
  */
 
