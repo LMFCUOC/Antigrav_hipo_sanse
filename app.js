@@ -171,8 +171,14 @@ function updateCharts(results) {
             }
         },
         scales: {
-            x: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') } },
-            y: { ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') } }
+            x: {
+                ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') },
+                beginAtZero: true
+            },
+            y: {
+                ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-color') },
+                beginAtZero: true
+            }
         }
     };
 
@@ -219,17 +225,21 @@ function updateCharts(results) {
             {
                 label: 'Sin Amortizar',
                 data: [base.totalInterest],
-                backgroundColor: '#a3b1c6'
+                backgroundColor: '#a3b1c6',
+                borderWidth: 0
             },
             {
                 label: 'Con Amortización',
                 data: [sim.totalInterest],
-                backgroundColor: '#6d5dfc'
+                backgroundColor: '#6d5dfc',
+                borderWidth: 0
             }
         ]
     }, commonOptions);
 
     // 3. Time Chart (Bar Horizontal)
+    // For horizontal bar, indexAxis is 'y'.
+    // We need to ensure the X axis (values) starts at zero.
     updateChart('time', 'bar', {
         labels: ['Tiempo (Años)'],
         datasets: [
@@ -237,16 +247,21 @@ function updateCharts(results) {
                 label: 'Sin Amortizar',
                 data: [base.totalYears],
                 backgroundColor: '#a3b1c6',
-                borderRadius: 10
+                borderRadius: 5,
+                borderWidth: 0
             },
             {
                 label: 'Con Amortización',
                 data: [sim.totalYears],
                 backgroundColor: '#00d2ff',
-                borderRadius: 10
+                borderRadius: 5,
+                borderWidth: 0
             }
         ]
-    }, { ...commonOptions, indexAxis: 'y' });
+    }, {
+        ...commonOptions,
+        indexAxis: 'y'
+    });
 
     // 4. ROI / Impact Chart (Doughnut or Bar)
     const rentalIncome = 850 * 12 * sim.totalYears;
@@ -255,7 +270,7 @@ function updateCharts(results) {
     updateChart('roi', 'doughnut', {
         labels: ['Ahorro Intereses', 'Ingresos Alquiler (Proyectado)'],
         datasets: [{
-            data: [totalSavings, rentalIncome],
+            data: [Math.max(0, totalSavings), rentalIncome], // Ensure no negative values for doughnut
             backgroundColor: ['#6d5dfc', '#00d2ff'],
             borderWidth: 0
         }]
